@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Frullatore 3D — modello generato con Blender</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: rgba(20, 24, 32, 0.82);
+    --bordo: rgba(255, 255, 255, 0.10);
+    --testo: #e8ecf2;
+    --tenue: #9aa4b2;
+    --accento: #4da3ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); }
+  body { font: 14px/1.5 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--testo); }
+  #scena { position: fixed; inset: 0; }
+  canvas { display: block; }
+
+  .pannello {
+    position: fixed; backdrop-filter: blur(14px);
+    background: var(--panel); border: 1px solid var(--bordo);
+    border-radius: 14px; padding: 16px 18px;
+  }
+  #info { top: 18px; left: 18px; max-width: 320px; }
+  #info h1 { margin: 0 0 2px; font-size: 17px; letter-spacing: -0.01em; }
+  #info .sotto { color: var(--tenue); font-size: 12px; margin-bottom: 12px; }
+  #info dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 12.5px; }
+  #info dt { color: var(--tenue); }
+  #info dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  #comandi { top: 18px; right: 18px; display: flex; flex-direction: column; gap: 8px; min-width: 208px; }
+  #comandi button {
+    all: unset; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13px;
+    border: 1px solid var(--bordo); background: rgba(255,255,255,0.04); transition: .18s;
+  }
+  #comandi button:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.2); }
+  #comandi button[aria-pressed="true"] { background: rgba(77,163,255,0.16); border-color: rgba(77,163,255,0.55); color: #cfe6ff; }
+  #comandi .scorri { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--tenue); }
+  #comandi input[type=range] { flex: 1; accent-color: var(--accento); }
+
+  #download { bottom: 18px; left: 18px; display: flex; gap: 8px; }
+  #download a {
+    color: var(--testo); text-decoration: none; font-size: 12.5px; padding: 8px 12px;
+    border-radius: 10px; border: 1px solid var(--bordo); background: rgba(255,255,255,0.04);
+  }
+  #download a:hover { background: rgba(255,255,255,0.1); }
+
+  #suggerimento { position: fixed; bottom: 18px; right: 18px; color: var(--tenue); font-size: 12px; text-align: right; }
+  #caricamento {
+    position: fixed; inset: 0; display: grid; place-content: center; gap: 14px;
+    justify-items: center; background: var(--bg); transition: opacity .5s; z-index: 10;
+  }
+  #caricamento.fine { opacity: 0; pointer-events: none; }
+  .barra { width: 190px; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.12); overflow: hidden; }
+  .barra i { display: block; height: 100%; width: 0; background: var(--accento); transition: width .25s; }
+  #caricamento span { color: var(--tenue); font-size: 12.5px; }
+  @media (max-width: 760px) {
+    #info, #comandi { max-width: none; left: 12px; right: 12px; }
+    #info { top: 12px; } #comandi { top: auto; bottom: 12px; flex-direction: row; flex-wrap: wrap; }
+    #comandi button { flex: 1 1 40%; } #download, #suggerimento { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div id="scena"></div>
+
+  <section class="pannello" id="info">
+    <h1>Frullatore</h1>
+    <div class="sotto">modello procedurale generato con Blender</div>
+    <dl>
+      <dt>Ingombro</dt><dd id="d-ingombro">—</dd>
+      <dt>Poligoni</dt><dd id="d-poligoni">—</dd>
+      <dt>Oggetti</dt><dd id="d-oggetti">—</dd>
+      <dt>Materiali</dt><dd id="d-materiali">—</dd>
+    </dl>
+  </section>
+
+  <section class="pannello" id="comandi">
+    <button id="b-ruota" aria-pressed="true"><span>Rotazione automatica</span><span>⟳</span></button>
+    <button id="b-esplosa" aria-pressed="false"><span>Vista esplosa</span><span>⤢</span></button>
+    <button id="b-wireframe" aria-pressed="false"><span>Wireframe</span><span>⋈</span></button>
+    <div class="scorri">
+      <label for="r-esplosione">Esplosione</label>
+      <input id="r-esplosione" type="range" min="0" max="100" value="0" />
+    </div>
+  </section>
+
+  <nav id="download">
+    <a href="../models/frullatore.glb" download>Scarica .glb</a>
+    <a href="../models/frullatore.blend" download>Scarica .blend</a>
+    <a href="../renders/hero_3-4.png" target="_blank" rel="noopener">Rendering</a>
+  </nav>
+
+  <div id="suggerimento">trascina per ruotare · rotella per zoomare · doppio clic per ricentrare</div>
+
+  <div id="caricamento">
+    <div class="barra"><i id="avanzamento"></i></div>
+    <span id="stato">caricamento del modello…</span>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./node_modules/three/build/three.module.js",
+      "three/addons/": "./node_modules/three/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

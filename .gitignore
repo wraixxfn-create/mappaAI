@@ -1,0 +1,23 @@
+# Blender
+*.blend1
+*.blend2
+
+# Python
+__pycache__/
+*.pyc
+
+# Ambiente di lavoro
+.venv/
+
+# Node / viewer
+node_modules/
+
+# Blender headless: librerie stub generate da tools/setup_blender_env.sh
+tools/blender_stubs/
+tools/attiva_ambiente.sh
+
+# CMake
+build/
+
+# Sistema
+.DS_Store
