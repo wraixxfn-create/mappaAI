@@ -1,0 +1,14 @@
+{
+  "name": "mappaai-viewer-frullatore",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Viewer web (three.js) del modello 3D del frullatore generato con Blender",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 ../tools/serve.py 8000",
+    "start": "python3 ../tools/serve.py 8000"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  }
+}
